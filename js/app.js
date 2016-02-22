@@ -5,7 +5,7 @@ var App = function () {
 
 	this.filter = this.audioContext.createBiquadFilter();
 	this.filter.type = 'lowpass';
-	this.filter.frequency.value = 10000;
+	this.filter.frequency.value = 800;
 
 	this.masterVolume.connect(this.filter);
 	this.filter.connect(this.audioContext.destination);
