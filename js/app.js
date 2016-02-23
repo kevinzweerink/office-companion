@@ -7,6 +7,22 @@ var App = function () {
 	this.filter.type = 'lowpass';
 	this.filter.frequency.value = 800;
 
+	this.filterControl = document.createElement('input');
+	this.filterControl.type = 'range';
+	this.filterControl.min = '0';
+	this.filterControl.max = '2500';
+
+	this.masterVolumeControl = document.createElement('input');
+	this.masterVolumeControl.type = 'range';
+	this.masterVolumeControl.min = '0';
+	this.masterVolumeControl.max = '10';
+
+	new this.controlParameter(this.masterVolumeControl, this.masterVolume.gain, 'value', function (a) { return parseInt(a); });
+	new this.controlParameter(this.filterControl, this.filter.frequency, 'value', function (a) { return parseInt(a); });
+
+	document.body.appendChild(this.filterControl);
+	document.body.appendChild(this.masterVolumeControl);
+
 	this.masterVolume.connect(this.filter);
 	this.filter.connect(this.audioContext.destination);
 	this.drones = [];
@@ -45,15 +61,23 @@ var OscillatorControlPanel = function () {
 	detune.setAttribute('min', '-50');
 	detune.setAttribute('max', '50');
 
+	var gain = document.createElement('input');
+	gain.setAttribute('type', 'range');
+	gain.setAttribute('min', '0');
+	gain.setAttribute('max', '10');
+	gain.setAttribute('step', '0.01')
+
 	panel.appendChild(type);
 	panel.appendChild(frequency);
 	panel.appendChild(detune);
+	panel.appendChild(gain);
 
 	return {
 		el : panel,
 		frequency : frequency,
 		type : type,
-		detune : detune
+		detune : detune,
+		gain : gain
 	}
 }
 
@@ -69,11 +93,15 @@ var Drone = function (app) {
 	this.ctx = app.audioContext || new AudioContext();
 
 	this.osc1 = this.ctx.createOscillator();
+	this.gain = this.ctx.createGain();
+
 	new app.controlParameter(this.ui.osc1Control.frequency, this.osc1.frequency, 'value', function (a) { return parseInt(a); });
 	new app.controlParameter(this.ui.osc1Control.type, this.osc1, 'type');
 	new app.controlParameter(this.ui.osc1Control.detune, this.osc1.detune, 'value', function (a) { return parseInt(a) });
-
-	this.osc1.connect(app.masterVolume);
+	new app.controlParameter(this.ui.osc1Control.gain, this.gain.gain, 'value', function (a) { return parseInt(a) });
+	
+	this.osc1.connect(this.gain);
+	this.gain.connect(app.masterVolume);
 	this.osc1.start(0);
 }
 
